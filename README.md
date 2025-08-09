@@ -62,3 +62,10 @@ scrapper components-of "Acoustic Guitar"
   - Co-occurence analysis
   - Ranking & window function
 - 🚧 **CLI tool** — in progress (using Typer for commands).
+
+---
+
+### ⚠️ Disclaimer
+
+This project uses publicly available data from the Nukapedia Fallout Wiki under the Creative Commons license.
+It is not affiliated with or endorsed by Bethesda Softworks or the Fallout franchise.
