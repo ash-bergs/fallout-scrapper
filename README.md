@@ -54,6 +54,7 @@ scrapper components-of "Acoustic Guitar"
 - ✅ **Scraper** — fetches and parses the wiki’s junk items table into SQLite.
 - ✅ **Schema** — normalized tables for clean joins and queries.
 - ✅ **Basic queries** — `.sql` files in `sql/` for common lookups.
+- ✅ **CLI tool** — using Typer for commands.
 - 🚧 **Intermediate/Advanced queries** - todo - LEFT JOIN? No problem, once we refresh some basics let's get our hands dirty with:
   - Left Joins
   - Self Joins
@@ -61,7 +62,78 @@ scrapper components-of "Acoustic Guitar"
   - Common Table Expressions
   - Co-occurence analysis
   - Ranking & window function
-- 🚧 **CLI tool** — in progress (using Typer for commands).
+
+---
+
+### CLI Setup & Usage
+
+The Fallout 76 scrap lookup tool now includes a command-line interface powered by [Typer](https://typer.tiangolo.com/).
+
+#### Install locally
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/<your-username>/fallout76-scrapper.git
+cd fallout76-scrapper
+```
+
+2. Create virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+.venv\Scripts\activate     # Windows
+```
+
+3. Install the package in editable mode:
+
+```bash
+pip install -e .
+```
+
+#### First-time setup
+
+Run the `init` function to begin, this will populate your local database:
+
+```bash
+f76 init
+```
+
+By default, the database will be stored at:
+
+- `data/fallout.sqlite` (if running from repo)
+- `~/.local/share/f76/fallout.sqlite` (if installed globally)
+
+#### Commands
+
+Input for each command is case insensitive.
+
+1. Show components from an item
+
+```bash
+f76 components-of "Acoustic Guitar"
+```
+
+Example output:
+| Component | Qty |
+|-----------|-----|
+| Wood | 4 |
+| Steel | 2 |
+
+2. Show items for a component
+
+```bash
+f76 items-for "cloth"
+```
+
+Lists items sorted by the amount of the component they yield.
+
+Example output:
+| Item | Qty |
+|-----------|-----|
+| Cigar Box | 2 |
+| Bumblebear| 1 |
 
 ---
 
