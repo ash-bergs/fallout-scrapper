@@ -74,7 +74,7 @@ The Fallout 76 scrap lookup tool now includes a command-line interface powered b
 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/fallout76-scrapper.git
+git clone https://github.com/ash-bergs/fallout76-scrapper.git
 cd fallout76-scrapper
 ```
 
