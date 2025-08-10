@@ -1,0 +1,22 @@
+PRAGMA foreign_keys=ON;
+
+CREATE TABLE IF NOT EXISTS item (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  url  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS component (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS item_scraps (
+  item_id INTEGER NOT NULL REFERENCES item(id) ON DELETE CASCADE,
+  component_id INTEGER NOT NULL REFERENCES component(id) ON DELETE RESTRICT,
+  quantity INTEGER NOT NULL,
+  PRIMARY KEY (item_id, component_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_item_name ON item(name);
+CREATE INDEX IF NOT EXISTS idx_component_name ON component(name);
