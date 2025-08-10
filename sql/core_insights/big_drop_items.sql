@@ -75,10 +75,16 @@ a focus on the items table here
 80lb barbell|Lead|7|7
 */
 
-SELECT i.id, i.name AS item,
-SUM(s.quantity) AS total_drop,
--- Preserve the components and amounts info
-GROUP_CONCAT(c.name || 'x' || s.quantity, ', ') AS breakdown
+-- Return each item’s ID and name, the total quantity of all scrap it yields,
+-- and a breakdown of the components that make up that total.
+SELECT 
+    i.id, 
+    i.name AS item,
+    SUM(s.quantity) AS total_drop,   -- total scrap quantity from this item
+    -- Concatenate component names and amounts into a single string
+    -- ex: "Steelx2, Leadx1"
+    -- Docs: https://sqlite.org/lang_aggfunc.html#groupconcat
+    GROUP_CONCAT(c.name || 'x' || s.quantity, ', ') AS breakdown
 FROM item AS i 
 JOIN item_scraps AS s ON s.item_id = i.id 
 JOIN component AS c ON c.id = s.component_id
