@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "f76"
+version = "0.1.0"
+description = "Fallout 76 scrap lookup CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["typer[all]", "rich"]
+
+[project.scripts]
+f76 = "f76.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["f76*"]
+exclude = ["data*", "sql*", "scripts*", "tests*"]

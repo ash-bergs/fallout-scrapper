@@ -2,15 +2,21 @@ import os, sqlite3, pathlib, requests
 from bs4 import BeautifulSoup
 # Note: when Python runs a file, it will compile it into bytecode (.pyc files)
 # This makes it faster to load these modules next time. Compiled files live in `__pycache__`
-from parsing_utils import clean_text, has_all_classes, parse_components_cell
-from db_utils import ensure_schema, upsert_component, upsert_item, set_item_scrap
+from ..parsing_utils import clean_text, has_all_classes, parse_components_cell
+from ..db_utils import ensure_schema, upsert_component, upsert_item, set_item_scrap
 
 URL = "https://fallout.fandom.com/wiki/Fallout_76_junk_items"
 HEADERS = {"User-Agent": "ash-sql-learning/0.1 (personal, low-traffic)"}
 
-DB = pathlib.Path(__file__).resolve().parents[1] / "data" / "fallout.sqlite"
+def default_repo_db() -> pathlib.Path:
+    return pathlib.Path(__file__).resolve().parents[3] / "data" / "fallout.sqlite"
 
-def main():
+def main(db_path: str | pathlib.Path | None = None):
+      # 1) CLI arg > 2) env var > 3) repo default
+    DB = pathlib.Path(db_path) if db_path else pathlib.Path(
+        os.environ.get("F76_DB_TARGET") or default_repo_db()
+    )
+    
     DB.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB) as conn:
         ensure_schema(conn)
@@ -18,7 +24,7 @@ def main():
         html = requests.get(URL, headers=HEADERS, timeout=30)
         html.raise_for_status()
         soup = BeautifulSoup(html.text, "html.parser")
-        print("soup:", soup)
+        # print("soup:", soup)
         # ---- Only the "Junk items" table ----
         anchor = soup.select_one("#Junk_items")  # <span id="Junk_items">
         if not anchor:
@@ -66,7 +72,7 @@ def main():
                     url = "https://fallout.fandom.com" + url
 
             comps = parse_components_cell(comp_cell)
-            print("Comps", comps)
+            # print("Comps", comps)
             if not comps:
                 continue
 
