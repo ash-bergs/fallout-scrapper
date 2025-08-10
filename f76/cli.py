@@ -1,7 +1,10 @@
 import os, pathlib, sqlite3, typer
 from rich.console import Console
 from rich.table import Table
-from .scripts.scrape_single_page import main as scraper_main
+from .scripts.scrape.junk_items_table import main as scrape_junk_items
+
+# TODO: break this file up as commands grow 
+# CLI directory? With Utils?
 
 app = typer.Typer(help="Fallout 76 scrap lookup")
 console = Console()
@@ -94,5 +97,5 @@ def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     # Pass the target path via env var 
     os.environ["F76_DB_TARGET"] = str(db_path)  
     console.print(f"Initializing DB at: {db_path}")
-    scraper_main()
+    scrape_junk_items()
     console.print("[green]Done.[/green]")

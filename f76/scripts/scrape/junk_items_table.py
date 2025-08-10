@@ -2,19 +2,14 @@ import os, sqlite3, pathlib, requests
 from bs4 import BeautifulSoup
 # Note: when Python runs a file, it will compile it into bytecode (.pyc files)
 # This makes it faster to load these modules next time. Compiled files live in `__pycache__`
-from .parsing_utils import clean_text, has_all_classes, parse_components_cell
-from .db_utils import ensure_schema, upsert_component, upsert_item, set_item_scrap
+from ..parsing_utils import clean_text, has_all_classes, parse_components_cell
+from ..db_utils import ensure_schema, upsert_component, upsert_item, set_item_scrap
 
 URL = "https://fallout.fandom.com/wiki/Fallout_76_junk_items"
 HEADERS = {"User-Agent": "ash-sql-learning/0.1 (personal, low-traffic)"}
 
-# DB = pathlib.Path(__file__).resolve().parents[1] / "data" / "fallout.sqlite"
-# DB = pathlib.Path(os.environ.get("F76_DB_TARGET", "")) or pathlib.Path(__file__).resolve().parents[2] / "data" / "fallout.sqlite"
-
 def default_repo_db() -> pathlib.Path:
-    # this file: f76/scripts/scrape_single_page.py
-    # project root = parents[2]
-    return pathlib.Path(__file__).resolve().parents[2] / "data" / "fallout.sqlite"
+    return pathlib.Path(__file__).resolve().parents[3] / "data" / "fallout.sqlite"
 
 def main(db_path: str | pathlib.Path | None = None):
       # 1) CLI arg > 2) env var > 3) repo default

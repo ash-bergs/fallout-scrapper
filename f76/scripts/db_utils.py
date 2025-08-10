@@ -6,7 +6,7 @@ import sqlite3, pathlib
 # `/ "sql" / "schema.sql"` - append path to the schema file
 # In short: Computing & storing the absolute path to the schema
 # Docs: https://docs.python.org/3/library/pathlib.html
-SCHEMA = pathlib.Path(__file__).resolve().parents[1] / "sql" / "schema.sql"
+SCHEMA = pathlib.Path(__file__).resolve().parents[2] / "sql" / "schema.sql"
 
 def ensure_schema(conn: sqlite3.Connection):
     """
