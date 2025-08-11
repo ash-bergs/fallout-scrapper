@@ -2,6 +2,7 @@ import os, pathlib, sqlite3, typer
 from rich.console import Console
 from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
+from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
 
 # TODO: break this file up as commands grow 
 # CLI directory? With Utils?
@@ -98,4 +99,16 @@ def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     os.environ["F76_DB_TARGET"] = str(db_path)  
     console.print(f"Initializing DB at: {db_path}")
     scrape_junk_items()
+    console.print("[green]Done.[/green]")
+
+@app.command("regions-init")
+def regions_init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    Test for Regions data
+    """
+    db_path = resolve_db_path(db)
+    # Pass the target path via env var 
+    os.environ["F76_DB_TARGET"] = str(db_path)  
+    console.print(f"Initializing DB at: {db_path}")
+    scrape_regions_and_locations()
     console.print("[green]Done.[/green]")

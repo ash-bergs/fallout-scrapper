@@ -11,7 +11,7 @@ def clean_text(s: str) -> str:
 # Class name on the Junk Items table - also belongs to several other tables
 TARGET = {"va-table", "va-table-center", "va-table-full"}
 
-
+# TODO: Refactor to take a list of classnames, review Lambdas 
 # Tag - bs4 type - has things like tag.name, tag.attrs, etc 
 def has_all_classes(tag: Tag) -> bool:
     return (

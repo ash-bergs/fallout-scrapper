@@ -18,5 +18,18 @@ CREATE TABLE IF NOT EXISTS item_scraps (
   PRIMARY KEY (item_id, component_id)
 );
 
+CREATE TABLE IF NOT EXISTS region (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS location (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  region_id INTEGER NOT NULL REFERENCES region(id) ON DELETE RESTRICT,
+  url TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_item_name ON item(name);
 CREATE INDEX IF NOT EXISTS idx_component_name ON component(name);
