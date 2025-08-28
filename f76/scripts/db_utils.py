@@ -8,6 +8,12 @@ import sqlite3, pathlib
 # Docs: https://docs.python.org/3/library/pathlib.html
 SCHEMA = pathlib.Path(__file__).resolve().parents[2] / "sql" / "schema.sql"
 
+def get_conn(db_path: pathlib.Path) -> sqlite3.Connection:
+    db_path.parent.mkdir(parents=True, exist_ok=True) # How does this work?
+    conn = sqlite3.connect(db_path)
+    conn.execute("PRAGMA foreign_keys=ON;")
+    return conn # Return the connection to the sqlite ... instance?
+
 def ensure_schema(conn: sqlite3.Connection):
     """
     Ensure that the databse has the correct schema.
@@ -75,6 +81,12 @@ def set_item_scrap(cur, item_id: int, component_id: int, qty: int):
         ON CONFLICT(item_id, component_id) 
         DO UPDATE SET quantity = excluded.quantity
     """, (item_id, component_id, qty))
+
+def fetch_all(db_path: pathlib.Path, sql: str, params: tuple = ()):
+    with get_conn(db_path) as cx:
+        rows = cx.execute(sql, params).fetchall()
+    return rows, db_path
+
 
 """
 SQLite Fundamentals this module uses
