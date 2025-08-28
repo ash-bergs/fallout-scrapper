@@ -112,7 +112,7 @@ Input for each command is case insensitive.
 1. Show components from an item
 
 ```bash
-f76 components-of "Acoustic Guitar"
+f76 scrap 'Acoustic Guitar'
 ```
 
 Example output:
@@ -124,7 +124,7 @@ Example output:
 2. Show items for a component
 
 ```bash
-f76 items-for "cloth"
+f76 sources 'cloth'
 ```
 
 Lists items sorted by the amount of the component they yield.
@@ -134,6 +134,47 @@ Example output:
 |-----------|-----|
 | Cigar Box | 2 |
 | Bumblebear| 1 |
+
+3. Get map regions
+
+```bash
+f76 regions
+```
+
+Lists the regions of the Fallout 76 map
+
+Example output:
+| Region |
+|--------------|
+| Ash Heap |
+| Cranberry Bog|
+
+4. Get a list of the locations/places in a given region
+
+```bash
+f76 places 'Ash Heap'
+```
+
+Lists the places in a region
+
+Example output:
+| Locations |
+|--------------|
+| AMS testing site |
+| Abandoned mine shaft 1 |
+
+5. Get the region for a given location/place
+
+```bash
+f76 whereis 'Wade Airport'
+```
+
+Returns the region of the map that the given location can be found
+
+Example output:
+| Region |
+|--------------|
+| The Forest |
 
 ---
 
