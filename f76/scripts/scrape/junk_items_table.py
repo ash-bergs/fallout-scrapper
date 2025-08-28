@@ -12,7 +12,7 @@ def default_repo_db() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parents[3] / "data" / "fallout.sqlite"
 
 def main(db_path: str | pathlib.Path | None = None):
-      # 1) CLI arg > 2) env var > 3) repo default
+    # 1) CLI arg > 2) env var > 3) repo default
     DB = pathlib.Path(db_path) if db_path else pathlib.Path(
         os.environ.get("F76_DB_TARGET") or default_repo_db()
     )

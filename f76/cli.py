@@ -1,13 +1,11 @@
-import os, pathlib, sqlite3, typer
+import os, pathlib, typer
 from rich.console import Console
 from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
 from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
+from .scripts.db_utils import fetch_all
 
-# TODO: break this file up as commands grow 
-# CLI directory? With Utils?
-
-app = typer.Typer(help="Fallout 76 scrap lookup")
+app = typer.Typer(help="Fallout 76 Personal Data Assistant")
 console = Console()
 
 def default_data_dir() -> pathlib.Path:
@@ -33,18 +31,11 @@ def resolve_db_path(db_opt: str | None = None) -> pathlib.Path:
     # user data dir fallback
     return default_data_dir() / "fallout.sqlite"
 
-def get_conn(db_path: pathlib.Path) -> sqlite3.Connection:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
-    conn.execute("PRAGMA foreign_keys=ON;")
-    return conn
-
-@app.command("components-of")
-def components_of(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+@app.command("scrap")
+def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what components a Junk Item will scrap into (e.g., "Giddyup Buttercup")
+    Look up what components a Junk Item will scrap into (example: `f76 scrap 'Giddyup Buttercup'`)
     """
-    db_path = resolve_db_path(db)
     q = """
     SELECT c.name, s.quantity
     FROM item i
@@ -53,23 +44,22 @@ def components_of(item: str, db: str | None = typer.Option(None, help="Path to f
     WHERE i.name = ? COLLATE NOCASE
     ORDER BY c.name;
     """
-    with get_conn(db_path) as cx:
-        rows = cx.execute(q, (item,)).fetchall()
+    db_path = resolve_db_path(db)
+    rows, _ = fetch_all(db_path, q, (item,))
     if not rows:
         console.print(f"[bold]No scraps found for:[/bold] {item} (DB: {db_path})")
         raise typer.Exit(1)
-    t = Table(title=f'"{item}" scraps for:')
+    t = Table(title=f'"{item}" scraps for:', expand=True)
     t.add_column("Component"); t.add_column("Qty", justify="right")
     for comp, qty in rows:
         t.add_row(comp, str(qty))
     console.print(t)
 
-@app.command("items-for")
-def items_for(component: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+@app.command("sources")
+def sources(component: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what Junk Items yield the most of a given component (e.g., "Lead")
+    Look up what Junk Items are a source of a given component (example: `f76 sources 'Lead'`)
     """
-    db_path = resolve_db_path(db)
     q = """
     SELECT i.name, s.quantity
     FROM component c
@@ -78,16 +68,84 @@ def items_for(component: str, db: str | None = typer.Option(None, help="Path to 
     WHERE c.name = ? COLLATE NOCASE
     ORDER BY s.quantity DESC, i.name;
     """
-    with get_conn(db_path) as cx:
-        rows = cx.execute(q, (component,)).fetchall()
+    db_path = resolve_db_path(db)
+    rows, _ = fetch_all(db_path, q, (component,)) 
     if not rows:
         console.print(f"[bold]No items found for component:[/bold] {component} (DB: {db_path})")
         raise typer.Exit(1)
-    t = Table(title=f'Items that yield "{component}"')
+    t = Table(title=f'Items that yield "{component}"', expand=True)
     t.add_column("Item"); t.add_column("Qty", justify="right")
     for item_name, qty in rows:
         t.add_row(item_name, str(qty))
     console.print(t)
+
+@app.command("whereis")
+def region_for(location: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    Look up what region a location exists in. (example: `f76 whereis 'Wade Airport'`)
+    """
+    q = """
+    SELECT r.name
+    FROM region r
+    JOIN location l ON l.region_id = r.id
+    WHERE l.name = ? COLLATE NOCASE
+    """
+    db_path = resolve_db_path(db)
+    rows, _ = fetch_all(db_path, q, (location,))
+    if not rows:
+        console.print(f"[bold]No region found for location:[/bold] {location.title()} (DB: {db_path})")
+        raise typer.Exit(1)
+    t = Table(title=f'{location.title()} is located in:', expand=True)
+    t.add_column("Region");
+    # fetchall returns a list of tuples - even for one col
+    for (region,) in rows:
+        t.add_row(region)
+    console.print(t)
+
+@app.command("places")
+def locations_in(region: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    Look up what locations are in a region of the map (example: `f76 places 'Cranberry Bog'`)
+    """
+    q = """
+    SELECT l.name
+    FROM location l
+    JOIN region r ON l.region_id = r.id
+    WHERE r.name = ? COLLATE NOCASE
+    ORDER BY l.name
+    """
+    db_path = resolve_db_path(db)
+    rows, _ = fetch_all(db_path, q, (region,))
+    if not rows:
+        console.print(f"[bold]No locations found for region:[/bold] {region.title()}")
+        raise typer.Exit(1)
+    t = Table(title=f'{region.title()} is home to the following locations:', expand=True)
+    t.add_column("Locations");
+    for (location_name,) in rows:
+        t.add_row(location_name)
+    console.print(t)
+
+@app.command("regions")
+def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    List all the regions of the map (example: `f76 regions`)
+    """
+    q = """
+    SELECT r.name
+    FROM region r
+    ORDER BY r.name
+    """
+    db_path = resolve_db_path(db)
+    rows, _ = fetch_all(db_path, q)
+    if not rows:
+        console.print(f"[bold]No regions found.[/bold] Have you ran `f76 init`?")
+        raise typer.Exit(1)
+    t = Table(title=f'You will find the following Regions in Appalachia:', expand=True)
+    t.add_column("Regions");
+    for (region_name,) in rows:
+        t.add_row(region_name)
+    console.print(t)
+
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
@@ -96,19 +154,10 @@ def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
     db_path = resolve_db_path(db)
     # Pass the target path via env var 
-    os.environ["F76_DB_TARGET"] = str(db_path)  
+    os.environ["F76_DB_TARGET"] = str(db_path)
     console.print(f"Initializing DB at: {db_path}")
-    scrape_junk_items()
-    console.print("[green]Done.[/green]")
-
-@app.command("regions-init")
-def regions_init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
-    """
-    Test for Regions data
-    """
-    db_path = resolve_db_path(db)
-    # Pass the target path via env var 
-    os.environ["F76_DB_TARGET"] = str(db_path)  
-    console.print(f"Initializing DB at: {db_path}")
-    scrape_regions_and_locations()
+    console.print(f"Preparing to initialize Scrap & Junk Items")
+    scrape_junk_items(db_path)
+    console.print(f"Preparing to initialize Regions & Locations")
+    scrape_regions_and_locations(db_path)
     console.print("[green]Done.[/green]")

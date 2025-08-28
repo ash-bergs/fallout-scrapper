@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS location (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
   region_id INTEGER NOT NULL REFERENCES region(id) ON DELETE RESTRICT,
-  url TEXT
+  url TEXT,
+  UNIQUE(name, region_id)
 );
 
 
