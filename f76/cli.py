@@ -9,8 +9,8 @@ from rich import box
 app = typer.Typer(help="Fallout 76 Personal Data Assistant")
 console = Console()
 
-PRIMARY_GREEN = "#00ff00"
-SECONDARY_GREEN = "dark_sea_green3"
+PRIMARY_GREEN = "#03e903"
+SECONDARY_GREEN = "#03AF03"
 
 def make_pipboy_table(title: str, width: int = 60) -> Table:
     """
