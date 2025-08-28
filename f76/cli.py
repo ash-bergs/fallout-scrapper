@@ -4,9 +4,29 @@ from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
 from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
 from .scripts.db_utils import fetch_all
+from rich import box
 
 app = typer.Typer(help="Fallout 76 Personal Data Assistant")
 console = Console()
+
+PRIMARY_GREEN = "#00ff00"
+SECONDARY_GREEN = "dark_sea_green3"
+
+def make_pipboy_table(title: str, width: int = 60) -> Table:
+    """
+    Creates table styled like a Fallout Pip-Boy.
+    Keeps consistent headers, colors, and spacing across commands.
+    """
+    return Table(
+        title=f"[{PRIMARY_GREEN}]{title}[/{PRIMARY_GREEN}]",
+        expand=False,
+        width=width,
+        show_lines=True,
+        padding=(0, 1),
+        header_style=f"bold {PRIMARY_GREEN}",
+        border_style=PRIMARY_GREEN,
+        row_styles=[PRIMARY_GREEN, SECONDARY_GREEN] # alternating row background
+    )
 
 def default_data_dir() -> pathlib.Path:
     base = pathlib.Path.home() / ".local" / "share" / "f76"  # fine on mac/Linux
@@ -49,8 +69,8 @@ def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
     if not rows:
         console.print(f"[bold]No scraps found for:[/bold] {item} (DB: {db_path})")
         raise typer.Exit(1)
-    t = Table(title=f'"{item}" scraps for:', expand=True)
-    t.add_column("Component"); t.add_column("Qty", justify="right")
+    t = make_pipboy_table(f'"{item}" scraps for:')
+    t.add_column(f"{item.title()} components", no_wrap=True); t.add_column("Qty", justify="right", no_wrap=True)
     for comp, qty in rows:
         t.add_row(comp, str(qty))
     console.print(t)
@@ -73,7 +93,7 @@ def sources(component: str, db: str | None = typer.Option(None, help="Path to fa
     if not rows:
         console.print(f"[bold]No items found for component:[/bold] {component} (DB: {db_path})")
         raise typer.Exit(1)
-    t = Table(title=f'Items that yield "{component}"', expand=True)
+    t = make_pipboy_table(f'Items that yield "{component}":')
     t.add_column("Item"); t.add_column("Qty", justify="right")
     for item_name, qty in rows:
         t.add_row(item_name, str(qty))
@@ -95,7 +115,7 @@ def region_for(location: str,db: str | None = typer.Option(None, help="Path to f
     if not rows:
         console.print(f"[bold]No region found for location:[/bold] {location.title()} (DB: {db_path})")
         raise typer.Exit(1)
-    t = Table(title=f'{location.title()} is located in:', expand=True)
+    t = make_pipboy_table(f'{location.title()} is located in:')
     t.add_column("Region");
     # fetchall returns a list of tuples - even for one col
     for (region,) in rows:
@@ -119,7 +139,7 @@ def locations_in(region: str,db: str | None = typer.Option(None, help="Path to f
     if not rows:
         console.print(f"[bold]No locations found for region:[/bold] {region.title()}")
         raise typer.Exit(1)
-    t = Table(title=f'{region.title()} is home to the following locations:', expand=True)
+    t = make_pipboy_table(f'{region.title()} is home to the following locations:')
     t.add_column("Locations");
     for (location_name,) in rows:
         t.add_row(location_name)
@@ -140,7 +160,7 @@ def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlit
     if not rows:
         console.print(f"[bold]No regions found.[/bold] Have you ran `f76 init`?")
         raise typer.Exit(1)
-    t = Table(title=f'You will find the following Regions in Appalachia:', expand=True)
+    t = make_pipboy_table(f'You will find the following Regions in Appalachia:')
     t.add_column("Regions");
     for (region_name,) in rows:
         t.add_row(region_name)
