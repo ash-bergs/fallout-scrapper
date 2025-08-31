@@ -26,7 +26,23 @@ def resolve_db_path(db_path: str | pathlib.Path | None) -> pathlib.Path:
     return pathlib.Path(env) if env else default_repo_db()
 
 # --- DB Connection + Schema bootstrapping ---
-# What is this? 👇
+# 🫧 Refresh - Context Manager - @contextmanager for `db_conn`🫧
+# A decorator from Python's contextlib module
+# Used to write context managers without writing a full class
+# Instead of a class, it's a fn that *yields* the resource once
+# Everything before `yield` runs when entering, everything after runs when leaving
+# `with` statement in use - `with db_conn(db_path, ensure_schema_fn=ensure_schema) as conn`
+# Manages setup and teardown safely. 
+#
+# JS Mirror: JS doesn't have a built-in `with ...:` construct for resource mngmt
+# But we use patterns that mimic the idea: 
+# 1. `try/finally` - manual context management 
+# 2. Abstracted helpers responsible for resource/context management
+# 3. Explicit resource management proposal - https://github.com/tc39/proposal-explicit-resource-management
+#
+# Human speak: "An obj/fn that defines what happens when we enter a block of code,
+# and what happens when we leave it, even if there's an error"
+# JS Dev speak: "Like a try/finally, or a helper that guarantees cleanup"
 @contextmanager
 def db_conn(db_path: str | pathlib.Path | None = None, *, ensure_schema_fn=None) -> Iterator[sqlite3.Connection]:
     """
