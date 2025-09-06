@@ -3,6 +3,7 @@ from rich.console import Console
 from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
 from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
+from .scripts.scrape.junk_locations import scrape_item_locations_by_name
 from .scripts.db_utils import fetch_all
 from rich import box
 
@@ -166,6 +167,38 @@ def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlit
         t.add_row(region_name)
     console.print(t)
 
+@app.command("where")
+def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    db_path = resolve_db_path(db)
+    # lazy pop: scrape if we have no rows
+    q_check = "SELECT COUNT(*) FROM item_locations il JOIN item i ON i.id = il.item_id WHERE i.name = ? COLLATE NOCASE"
+    rows, _ = fetch_all(db_path, q_check, (item,))
+    if rows[0][0] == 0:
+        scrape_item_locations_by_name(item, db_path)
+
+    # run the search now that we know we have the data
+    q = """
+    SELECT l.name, il.quantity, il.description
+    FROM item_locations il
+    JOIN item i ON i.id = il.item_id
+    JOIN location l ON l.id = il.location_id
+    WHERE i.name = ? COLLATE NOCASE
+    ORDER BY l.name, il.quantity IS NULL, COALESCE(il.quantity, 0) DESC;
+    """
+    results, _ = fetch_all(db_path, q, (item,))
+    if not results:
+        console.print(f"[bold]No locations for {item}.[/bold]")
+        raise typer.Exit(1)
+    t = make_pipboy_table(f'You will find {item} in the following locations:')
+    # Build table columns
+    t.add_column("Location")
+    t.add_column("Qty", justify="right")
+    t.add_column("Description", overflow="fold")
+    # Populate the rows
+    for (loc_name, qty, desc) in results:
+        t.add_row(loc_name, str(qty) if qty is not None else "-", desc)
+    console.print(t)
+        
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
