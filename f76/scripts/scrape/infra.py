@@ -53,11 +53,15 @@ def db_conn(db_path: str | pathlib.Path | None = None, *, ensure_schema_fn=None)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     conn = sqlite3.connect(path)
-
+    conn.execute("PRAGMA foreign_keys=ON;")
     try:
         if ensure_schema_fn is not None:
             ensure_schema_fn(conn)
         yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
