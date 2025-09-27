@@ -199,6 +199,7 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
         t.add_row(loc_name, str(qty) if qty is not None else "-", desc)
     console.print(t)
         
+# TODO: @app.command(TBD) - command for enemy information
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):

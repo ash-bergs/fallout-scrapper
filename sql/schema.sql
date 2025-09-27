@@ -42,6 +42,13 @@ CREATE TABLE IF NOT EXISTS item_locations (
   PRIMARY KEY (item_id, location_id, description)
 );
 
+-- Broadest layer of enemies 
+CREATE TABLE IF NOT EXISTS enemy_category (
+  id INTEGER PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  url TEXT
+);
+
 -- Helpful indexes for common lookups
 -- These are performance helpers - they don't change the data, but speed up certain queries
 -- Without an index SQL will scan the whole table, row by row - e.g. "full table scan"

@@ -1,7 +1,6 @@
 import pathlib
 from bs4 import BeautifulSoup
-# Note: when Python runs a file, it will compile it into bytecode (.pyc files)
-# This makes it faster to load these modules next time. Compiled files live in `__pycache__`
+
 from .infra import db_conn, fetch_soup
 from ..parsing_utils import clean_text, has_all_classes, parse_components_cell
 from ..db_utils import ensure_schema, upsert_component, upsert_item, set_item_scrap
@@ -11,7 +10,7 @@ URL = "https://fallout.fandom.com/wiki/Fallout_76_junk_items"
 def main(db_path: str | pathlib.Path | None = None):
     soup: BeautifulSoup = fetch_soup(URL)
 
-    # Find the "Junk Items" table 
+    # TODO: Identify landmarks
     anchor = soup.select_one("#Junk_items")
     if not anchor:
         raise SystemExit("Couldn't find #Junk_items anchor")
@@ -65,14 +64,16 @@ def main(db_path: str | pathlib.Path | None = None):
             # For now this is more efficient for our use case, we can extend this in the future
             with conn:
                 cur = conn.cursor()
-                item_id = upsert_item(cur, name, url)
-                for qty, comp_name in comps:
-                    comp_id = upsert_component(cur, comp_name)
-                    set_item_scrap(cur, item_id, comp_id, qty)
-                    total_links += 1
+                # TODO: add enemy categories 
+                # item_id = upsert_item(cur, name, url)
+                # for qty, comp_name in comps:
+                #     comp_id = upsert_component(cur, comp_name)
+                #     set_item_scrap(cur, item_id, comp_id, qty)
+                #     total_links += 1
             total_items += 1
 
-    print(f"Loaded {total_items} junk items with {total_links} component links.")
+    # TODO: future:  with {total_links} enemy types, etc. - breakdown of enemies we're adding
+    print(f"Loaded {total_items} enemy categories.")
 
 if __name__ == "__main__":
     main()
