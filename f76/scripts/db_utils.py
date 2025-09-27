@@ -56,6 +56,30 @@ def upsert_component(cur, name: str) -> int:
     cur.execute("INSERT INTO component(name) VALUES (?)", (name,))
     return cur.lastrowid
 
+def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]]):
+    """
+    Insert or ignore list of enemy groups for given category.
+    """
+    # Lookup category ID
+    row = cur.execute(
+        "SELECT id FROM enemy_category WHERE name = ?",
+        (category,),
+    ).fetchone()
+    if not row:
+        raise RuntimeError(f"Category {category} could not be found in DB.")
+    category_id = row[0]
+
+    for name, url in groups:
+        cur.execute(
+            """
+            INSERT INTO enemy_group (category_id, name, url)
+            VALUES(?,?,?)
+            ON CONFLICT(category_id, name) DO NOTHING
+            """,
+            (category_id, name, url)
+        )
+    print(f"Loaded {len(groups)} enemy groups for {category}")
+
 def set_item_scrap(cur, item_id: int, component_id: int, qty: int):
     """
     Set the scrap quantity for a given `item` -> `component` mapping

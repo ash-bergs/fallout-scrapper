@@ -60,6 +60,9 @@ def main(db_path: str | pathlib.Path | None = None):
             if not comps:
                 continue
 
+            # TODO: We're only setting components based on items and what they scrap into
+            # there are more components than this in the game, acquired only through collection
+            # For now this is more efficient for our use case, we can extend this in the future
             with conn:
                 cur = conn.cursor()
                 item_id = upsert_item(cur, name, url)

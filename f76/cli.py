@@ -4,6 +4,7 @@ from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
 from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
 from .scripts.scrape.junk_locations import scrape_item_locations_by_name
+from .scripts.scrape.enemies import main as scrape_enemy_categories
 from .scripts.db_utils import fetch_all
 from rich import box
 
@@ -169,6 +170,9 @@ def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlit
 
 @app.command("where")
 def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    List locations where a junk item can be found (example `f76 where soap`)
+    """
     db_path = resolve_db_path(db)
     # lazy pop: scrape if we have no rows
     q_check = "SELECT COUNT(*) FROM item_locations il JOIN item i ON i.id = il.item_id WHERE i.name = ? COLLATE NOCASE"
@@ -199,6 +203,8 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
         t.add_row(loc_name, str(qty) if qty is not None else "-", desc)
     console.print(t)
         
+# TODO: 
+# @app.command("enemy")
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
@@ -209,8 +215,13 @@ def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     # Pass the target path via env var 
     os.environ["F76_DB_TARGET"] = str(db_path)
     console.print(f"Initializing DB at: {db_path}")
+    console.print("\n")
     console.print(f"Preparing to initialize Scrap & Junk Items")
     scrape_junk_items(db_path)
+    console.print("\n")
     console.print(f"Preparing to initialize Regions & Locations")
     scrape_regions_and_locations(db_path)
+    console.print("\n")
+    console.print(f"Preparing to initialize Enemy data")
+    scrape_enemy_categories(db_path)
     console.print("[green]Done.[/green]")
