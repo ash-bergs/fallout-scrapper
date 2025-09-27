@@ -200,22 +200,8 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
         t.add_row(loc_name, str(qty) if qty is not None else "-", desc)
     console.print(t)
         
-# TODO: @app.command(TBD) - command for enemy information
-@app.command("enemy")
-def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
-    """
-    Create/populate the database by running the scraper once.
-    """
-    db_path = resolve_db_path(db)
-    # Pass the target path via env var 
-    os.environ["F76_DB_TARGET"] = str(db_path)
-    scrape_enemy_categories(db_path)
-    # console.print(f"Initializing DB at: {db_path}")
-    # console.print(f"Preparing to initialize Scrap & Junk Items")
-    # scrape_junk_items(db_path)
-    # console.print(f"Preparing to initialize Regions & Locations")
-    # scrape_regions_and_locations(db_path)
-    console.print("[green]Done.[/green]")
+# TODO: 
+# @app.command("enemy")
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
@@ -226,8 +212,13 @@ def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     # Pass the target path via env var 
     os.environ["F76_DB_TARGET"] = str(db_path)
     console.print(f"Initializing DB at: {db_path}")
+    console.print("\n")
     console.print(f"Preparing to initialize Scrap & Junk Items")
     scrape_junk_items(db_path)
+    console.print("\n")
     console.print(f"Preparing to initialize Regions & Locations")
     scrape_regions_and_locations(db_path)
+    console.print("\n")
+    console.print(f"Preparing to initialize Enemy data")
+    scrape_enemy_categories(db_path)
     console.print("[green]Done.[/green]")

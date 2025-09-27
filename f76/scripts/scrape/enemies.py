@@ -2,7 +2,7 @@ import pathlib
 from bs4 import BeautifulSoup
 
 from .infra import db_conn, fetch_soup
-from ..parsing_utils import clean_text, has_all_classes, parse_components_cell
+from ..parsing_utils import clean_text
 from ..db_utils import ensure_schema, upsert_enemy_groups
 
 URL = "https://fallout.fandom.com/wiki/Fallout_76_creatures"

@@ -82,3 +82,5 @@ CREATE INDEX IF NOT EXISTS idx_item_locations_location ON item_locations(locatio
 CREATE INDEX IF NOT EXISTS idx_item_name ON item(name);
 -- Speeds up queries for details about items by component name
 CREATE INDEX IF NOT EXISTS idx_component_name ON component(name);
+-- Enemy groups by category
+CREATE INDEX IF NOT EXISTS idx_enemy_group_category ON enemy_group(category_id);
