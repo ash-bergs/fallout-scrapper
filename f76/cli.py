@@ -170,6 +170,9 @@ def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlit
 
 @app.command("where")
 def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    List locations where a junk item can be found (example `f76 where soap`)
+    """
     db_path = resolve_db_path(db)
     # lazy pop: scrape if we have no rows
     q_check = "SELECT COUNT(*) FROM item_locations il JOIN item i ON i.id = il.item_id WHERE i.name = ? COLLATE NOCASE"
