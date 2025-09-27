@@ -4,6 +4,7 @@ from rich.table import Table
 from .scripts.scrape.junk_items_table import main as scrape_junk_items
 from .scripts.scrape.regions_and_locations import main as scrape_regions_and_locations
 from .scripts.scrape.junk_locations import scrape_item_locations_by_name
+from .scripts.scrape.enemies import main as scrape_enemy_categories
 from .scripts.db_utils import fetch_all
 from rich import box
 
@@ -200,6 +201,21 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
     console.print(t)
         
 # TODO: @app.command(TBD) - command for enemy information
+@app.command("enemy")
+def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    Create/populate the database by running the scraper once.
+    """
+    db_path = resolve_db_path(db)
+    # Pass the target path via env var 
+    os.environ["F76_DB_TARGET"] = str(db_path)
+    scrape_enemy_categories(db_path)
+    # console.print(f"Initializing DB at: {db_path}")
+    # console.print(f"Preparing to initialize Scrap & Junk Items")
+    # scrape_junk_items(db_path)
+    # console.print(f"Preparing to initialize Regions & Locations")
+    # scrape_regions_and_locations(db_path)
+    console.print("[green]Done.[/green]")
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
