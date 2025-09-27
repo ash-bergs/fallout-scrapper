@@ -58,7 +58,7 @@ def upsert_component(cur, name: str) -> int:
 
 def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]]):
     """
-    
+    Insert or ignore list of enemy groups for given category.
     """
     # Lookup category ID
     row = cur.execute(

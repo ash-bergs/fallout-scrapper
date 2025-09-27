@@ -17,7 +17,6 @@ def parse_enemy_groups(soup: BeautifulSoup, category: str) -> list[tuple[str, st
 
     Excludes "Other"
     """
-    # TODO: Broaden, single use for now
     anchor = soup.select_one(f"span.mw-headline#{category}")
     if not anchor:
         raise RuntimeError(f"Couldn't find {category} anchor")
