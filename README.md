@@ -12,6 +12,8 @@ If you trade in scrap you know:
 - Online wikis are great, but they're slow to search and usually have a lot of data on one page
 - I wanted a personal, queryable database to check "items → components" or "components -> items" quickly
 
+And if you don't trade in scrap, you likely wish you had a reference for the weekly or daily challenges that have us running around the wasteland looking for toilet paper and cigarettes.
+
 This project:
 
 - Scrapes the Fallout 76 [Nukapedia Fallout Wiki](https://fallout.fandom.com/wiki/Fallout_76_junk_items) specifically
@@ -175,6 +177,20 @@ Example output:
 | Region |
 |--------------|
 | The Forest |
+
+6. Get location spawn points for a given junk item
+
+```bash
+f76 where 'yellow plate'
+```
+
+Returns the region of the map that the given location can be found
+
+Example output:
+| Location | Qty | Desc |
+|-----------|-----|-----------|
+| Overlook Cabin | 2 | Two can be found in the Overlook cabin
+| The Brown House | 10 | Ten can be found inside the Brown House
 
 ---
 

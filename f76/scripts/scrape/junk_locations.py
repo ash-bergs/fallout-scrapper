@@ -138,18 +138,23 @@ def scrape_item_locations(item_id: int, item_url: str, db_path: str | pathlib.Pa
             loc_name = _location_name_from_link(a)
             desc_text = clean_text(li.get_text(" ", strip=True))
             qty = _parse_quantity(desc_text)
-        
+            sub_points = list(_iter_sub_points(li))
             loc_id = _lookup_location_id_by_name(cur, loc_name)
-            if loc_id is not None:
-                _insert_item_location(cur, item_id, loc_id, desc_text, qty)
-                inserted += 1
-
-                # nested sub-points share the same location context
-                for sub in _iter_sub_points(li):
+            if loc_id is None:
+                continue
+            
+            # If there are sub-points, treat parent as a summary and skip
+            # So we don't have a deceptive parent row thats sums the sub points
+            if sub_points:
+                for sub in sub_points:
                     sub_desc = clean_text(sub.get_text(" ", strip=True))
                     sub_qty = _parse_quantity(sub_desc)
                     _insert_item_location(cur, item_id, loc_id, sub_desc, sub_qty)
                     inserted += 1
+            else: 
+                # No sub points, submit the parent row
+                _insert_item_location(cur, item_id, loc_id, desc_text, qty)
+                inserted +=1
 
     return inserted
 
