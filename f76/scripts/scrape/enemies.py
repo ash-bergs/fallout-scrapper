@@ -9,10 +9,45 @@ URL = "https://fallout.fandom.com/wiki/Fallout_76_creatures"
 
 ENEMY_CATEGORIES = ["Humans", "Creatures", "Robots"]
 
+def parse_humans_groups(soup: BeautifulSoup) -> list[tuple[str, str | None]]:
+    """
+    Returns...
+
+    """
+    # TODO: Broaden, single use for now
+    anchor = soup.select_one("span.mw-headline#Humans")
+    if not anchor:
+        raise RuntimeError("Couldn't find Humans anchor")
+    
+    h2 = anchor.find_parent("h2")
+    table = h2.find_next("table", class_="va-table")
+    if not table:
+        raise RuntimeError("Couldn't find table")
+    
+    groups: list[tuple[str, str | None]] = []
+    for row in table.select("tr"):
+        th = row.find("th", colspan="3")
+        if not th:
+            continue
+        # Table row has a link with the enemy group name
+        a = th.find("a")
+        if a:
+            name = clean_text(a.get_text(" ", strip=True))
+            url = a.get("href")
+            if url and url.startswith("/"):
+                url = "https://fallout.fandom.com" + url
+        else:
+            name = clean_text(th.get_text(" ", strip=True))
+            url = None
+        # Other doesn't really help us, but will have to decide how to handle these couple of enemies
+        if name and name.lower() != "other":
+            groups.append((name, url))
+    return groups
+
 def main(db_path: str | pathlib.Path | None = None):
     soup: BeautifulSoup = fetch_soup(URL)
 
-    print("Soup 🍲: ", soup)
+    #print("Soup 🍲: ", soup)
 
 # We know there are three catgories:
 # Humans: <span class="mw-headline" id="Humans">Humans</span>
@@ -39,9 +74,32 @@ def main(db_path: str | pathlib.Path | None = None):
                     """,
                     (category,),
                 )
-
     print(f"Loaded {len(ENEMY_CATEGORIES)} enemy categories.")
+    
+    human_groups = parse_humans_groups(soup)
+    # Add human enemies to the database 
+    with db_conn(db_path, ensure_schema_fn=ensure_schema) as conn:
+        with conn:
+            cur = conn.cursor()
 
+            # Get enemy category id
+            category_id = cur.execute(
+                "SELECT id FROM enemy_category WHERE name = ?",
+                ("Humans",),
+            ).fetchone()[0]
+
+
+            for name, url in human_groups:
+                cur.execute(
+                    """
+                    INSERT INTO enemy_group (category_id, name, url)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(category_id, name) DO NOTHING
+                    """,
+                    (category_id, name, url),
+                )
+    print(f"Loaded {len(ENEMY_CATEGORIES)} human enemy groups.")    
+  
 # Now we can go on to pulling from categories
 # Under each of these headings we find tables
 # Humans has one bullet point (a note on legendary effect, which we'll ignore)

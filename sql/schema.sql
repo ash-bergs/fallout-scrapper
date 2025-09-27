@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS location (
   name TEXT NOT NULL,
   region_id INTEGER NOT NULL REFERENCES region(id) ON DELETE RESTRICT,
   url TEXT,
+  -- Unique constraint: "Can't have 2 locations with the same name in a region"
   UNIQUE(name, region_id)
 );
 
@@ -47,6 +48,15 @@ CREATE TABLE IF NOT EXISTS enemy_category (
   id INTEGER PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
   url TEXT
+);
+
+-- Next grouping down -> for Humans this would be "Blood Eagles", etc
+CREATE TABLE IF NOT EXISTS enemy_group (
+  id INTEGER PRIMARY KEY,
+  category_id INTEGER NOT NULL REFERENCES enemy_category(id),
+  name TEXT NOT NULL,
+  url TEXT,
+  UNIQUE(category_id, name)
 );
 
 -- Helpful indexes for common lookups
