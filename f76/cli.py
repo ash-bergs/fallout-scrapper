@@ -11,15 +11,17 @@ from rich import box
 
 app = typer.Typer(help="Fallout 76 Personal Data Assistant")
 # Create sub app for registering our different items that can be acted on
+enemy_app = typer.Typer(help="Explore & analyze enemies")
 junk_app = typer.Typer(help="Explore & analyze junk items")
-scrap_app = typer.Typer(help="Explore & analyze scrap/components")
 location_app = typer.Typer(help="Explore & analyze locations")
 region_app = typer.Typer(help="Explore and analyze regions of Appalachia")
+scrap_app = typer.Typer(help="Explore & analyze scrap/components")
 
+app.add_typer(enemy_app, name="enemy")
 app.add_typer(junk_app, name="junk")
-app.add_typer(scrap_app, name="scrap")
 app.add_typer(location_app, name="location")
 app.add_typer(region_app, name="region")
+app.add_typer(scrap_app, name="scrap")
 
 console = Console()
 
@@ -46,7 +48,7 @@ def resolve_db_path(db_opt: str | None = None) -> pathlib.Path:
     # user data dir fallback
     return default_data_dir() / "fallout.sqlite"
 
-# Register this action under the new junk_app
+# ---- Junk Commands ⏰ ----
 @junk_app.command("scrap")
 def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
@@ -71,7 +73,6 @@ def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
         t.add_row(comp, str(qty))
     console.print(t)
 
-# Junk Command
 @junk_app.command("find")
 def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
@@ -107,8 +108,7 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
         t.add_row(loc_name, str(qty) if qty is not None else "-", desc)
     console.print(t)
         
-
-# Went with "scrap" because the community recognizes components as "scrap"
+# ---- Scrap Commands 🛠️ ----
 @scrap_app.command("sources")
 def sources(component: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
@@ -133,6 +133,59 @@ def sources(component: str, db: str | None = typer.Option(None, help="Path to fa
         t.add_row(item_name, str(qty))
     console.print(t)
 
+# ---- Enemy Commands 🙈 ----
+@enemy_app.command("list")
+def list_enemies(category: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
+    """
+    Look up what enemy groups are in each category 
+    """
+    db_path = resolve_db_path(db)
+
+    # handle differently for Creatures - expanded print out
+    if category.lower() == "creatures":
+        q = """
+        SELECT f.name AS family_name, g.name AS group_name
+        FROM enemy_category c
+        JOIN enemy_family f ON f.category_id = c.id
+        LEFT JOIN enemy_group g ON g.family_id = f.id
+        WHERE c.name = ? COLLATE NOCASE
+        ORDER BY f.name, g.name
+        """
+        rows, _ = fetch_all(db_path, q, (category,))
+
+        if not rows:
+            console.print(f"[bold]No creature families or groups found (DB: {db_path})")
+            raise typer.Exit(1)
+
+        t = make_pipboy_table(f"Creature enemy groups by family:")
+        t.add_column("Family")
+        t.add_column("Group")
+
+        for family_name, group_name in rows:
+            t.add_row(family_name or "-", group_name or "-")
+
+        console.print(t)
+        return
+
+    # Default handing for Humans/Robots
+    q ="""
+    SELECT g.name
+    FROM enemy_category c
+    JOIN enemy_group g ON g.category_id = c.id
+    WHERE c.name = ? COLLATE NOCASE
+    ORDER BY g.name
+    """
+    rows, _ = fetch_all(db_path, q, (category,)) 
+    if not rows:
+        console.print(f"[bold]No enemies found for category:[/bold] {category} (DB: {db_path})")
+        raise typer.Exit(1)
+    t = make_pipboy_table(f"Enemies in {category} category:")
+    t.add_column(f"Enemies ({category})");
+    for (enemy_name,) in rows:
+        t.add_row(enemy_name)
+    console.print(t)
+
+# ---- Location Commands 📍 ----
 @location_app.command("find")
 def region_for(location: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
@@ -156,6 +209,7 @@ def region_for(location: str,db: str | None = typer.Option(None, help="Path to f
         t.add_row(region)
     console.print(t)
 
+# ---- Region Commands 🗺️ ---- 
 # Conceptually different from the ones above - "find doesn't fit in as well here"
 @region_app.command("locations")
 def locations_in(region: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
