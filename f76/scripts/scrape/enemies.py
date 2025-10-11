@@ -7,13 +7,11 @@ from ..db_utils import ensure_schema, upsert_enemy_groups
 
 URL = "https://fallout.fandom.com/wiki/Fallout_76_creatures"
 
-# We know there are 3 categories, so we'll just hardcode them
+# ---- Hardcoded Enemy Categories & Families ----
+# Manually recorded for simplicity 
+# TODO: Consider fetching dynamically 
 ENEMY_CATEGORIES = ["Humans", "Creatures", "Robots"]
 
-# We need to parse the creatures differently
-# starting with parsing the families?
-# This might be another time where it pays off to be more explicit
-# than trying to be clever
 ENEMY_FAMILIES = [
     "Animals",
     "Bugs and insects",
@@ -27,10 +25,9 @@ ENEMY_FAMILIES = [
     "Other" # For some reason this is Deathclaws, Floaters, and other significant enemies - need to be captured
 ]
     
-# This should work for the Creatures stuff too, we'll just want to pass each family name to this:
 def parse_enemy_groups(soup: BeautifulSoup, category: str) -> list[tuple[str, str | None]]:
     """
-    Given a category, finds the next available table under that heading.
+    Given a category or family, finds the next available table under that heading.
     Returns a list of (group_name, url).
 
     Excludes "Other"
@@ -125,10 +122,9 @@ def main(db_path: str | pathlib.Path | None = None):
             robot_groups = parse_enemy_groups(soup, "Robots")
             upsert_enemy_groups(cur, "Humans", human_groups) 
             upsert_enemy_groups(cur, "Robots", robot_groups)
-            #Parse and insert the enemy groups for each Creature family
+            # Parse and insert the enemy groups for each Creature family
             for family in ENEMY_FAMILIES:
                 groups = parse_enemy_groups(soup, family)
-                # this needs to be updated to optionally accept a family_id
                 upsert_enemy_groups(cur, "Creatures", groups, family)
 
 if __name__ == "__main__":

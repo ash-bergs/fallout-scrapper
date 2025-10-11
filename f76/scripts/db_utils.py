@@ -59,8 +59,9 @@ def upsert_component(cur, name: str) -> int:
 def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]], family: str | None = None):
     """
     Insert or ignore list of enemy groups for given category.
+    Optionally accepts enemy family.
     """
-    # Lookup category ID
+    # Find Category ID
     row = cur.execute(
         "SELECT id FROM enemy_category WHERE name = ?",
         (category,),
@@ -70,7 +71,7 @@ def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]]
     category_id = row[0]
 
     family_id = None
-    # if family given:
+    # Find family ID, if family passed
     if family:
         family_row = cur.execute(
             "SELECT id FROM enemy_family WHERE name = ?",
