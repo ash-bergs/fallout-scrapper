@@ -56,7 +56,7 @@ def upsert_component(cur, name: str) -> int:
     cur.execute("INSERT INTO component(name) VALUES (?)", (name,))
     return cur.lastrowid
 
-def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]]):
+def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]], family: str | None = None):
     """
     Insert or ignore list of enemy groups for given category.
     """
@@ -69,16 +69,27 @@ def upsert_enemy_groups(cur, category: str, groups: list[tuple[str, str | None]]
         raise RuntimeError(f"Category {category} could not be found in DB.")
     category_id = row[0]
 
+    family_id = None
+    # if family given:
+    if family:
+        family_row = cur.execute(
+            "SELECT id FROM enemy_family WHERE name = ?",
+            (family,),
+        ).fetchone()
+        if not family_row:
+            raise RuntimeError(f"Family '{family}' could not be found in DB.")
+        family_id = family_row[0]
+        
     for name, url in groups:
         cur.execute(
             """
-            INSERT INTO enemy_group (category_id, name, url)
-            VALUES(?,?,?)
+            INSERT INTO enemy_group (category_id, family_id, name, url)
+            VALUES(?,?,?,?)
             ON CONFLICT(category_id, name) DO NOTHING
             """,
-            (category_id, name, url)
+            (category_id, family_id, name, url)
         )
-    print(f"Loaded {len(groups)} enemy groups for {category}")
+    print(f"Loaded {len(groups)} enemy groups for {category}" + (f" → family {family}" if family else ""))
 
 def set_item_scrap(cur, item_id: int, component_id: int, qty: int):
     """

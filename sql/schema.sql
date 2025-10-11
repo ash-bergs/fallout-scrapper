@@ -54,6 +54,17 @@ CREATE TABLE IF NOT EXISTS enemy_category (
 CREATE TABLE IF NOT EXISTS enemy_group (
   id INTEGER PRIMARY KEY,
   category_id INTEGER NOT NULL REFERENCES enemy_category(id),
+  family_id INTEGER REFERENCES enemy_family(id),
+  name TEXT NOT NULL,
+  url TEXT,
+  UNIQUE(category_id, name)
+);
+
+-- Creatures present us with the issue of an additional hierarchal group
+-- that the other enemy categories don't have, and not *all* the creatures have either
+CREATE TABLE IF NOT EXISTS enemy_family (
+  id INTEGER PRIMARY KEY,
+  category_id INTEGER NOT NULL REFERENCES enemy_category(id),
   name TEXT NOT NULL,
   url TEXT,
   UNIQUE(category_id, name)
