@@ -7,21 +7,39 @@ from ..db_utils import ensure_schema, upsert_enemy_groups
 
 URL = "https://fallout.fandom.com/wiki/Fallout_76_creatures"
 
-# We know there are 3 categories, so we'll just hardcode them
+# ---- Hardcoded Enemy Categories & Families ----
+# Manually recorded for simplicity 
+# TODO: Consider fetching dynamically 
 ENEMY_CATEGORIES = ["Humans", "Creatures", "Robots"]
 
+ENEMY_FAMILIES = [
+    "Animals",
+    "Bugs and insects",
+    "Cryptids",
+    "Mirelurks",
+    "Ghouls",
+    "Lost",
+    "Mole miners",
+    "Scorched",
+    "Super mutants",
+    "Other" # For some reason this is Deathclaws, Floaters, and other significant enemies - need to be captured
+]
+    
 def parse_enemy_groups(soup: BeautifulSoup, category: str) -> list[tuple[str, str | None]]:
     """
-    Given a category, finds the next available table under that heading.
+    Given a category or family, finds the next available table under that heading.
     Returns a list of (group_name, url).
 
     Excludes "Other"
     """
-    anchor = soup.select_one(f"span.mw-headline#{category}")
+    # Ids for multi words become: Bugs_and_insects
+    anchor_id = category.replace(" ", "_")
+    anchor = soup.select_one(f"span.mw-headline#{anchor_id}")
     if not anchor:
         raise RuntimeError(f"Couldn't find {category} anchor")
     
-    h2 = anchor.find_parent("h2")
+    # find_parent accepts a dictionary of filter on attr values
+    h2 = anchor.find_parent(["h2", "h3"])
     table = h2.find_next("table", class_="va-table")
     if not table:
         raise RuntimeError(f"Couldn't {category} find table")
@@ -49,17 +67,22 @@ def parse_enemy_groups(soup: BeautifulSoup, category: str) -> list[tuple[str, st
 def main(db_path: str | pathlib.Path | None = None):
     soup: BeautifulSoup = fetch_soup(URL)
 
-    #print("Soup 🍲: ", soup)    
-    # Make sure enemy categories present in HTML
+    # Validate categories and families exist as headings on the page
     for category in ENEMY_CATEGORIES:
         anchor = soup.select_one(f"span.mw-headline#{category}")
         if not anchor:
-            raise SystemExit(f"Couldn't find {category} anchor")
+            raise SystemExit(f"Couldn't find {category} enemy category anchor")
+    for family in ENEMY_FAMILIES:
+        anchor = soup.select_one(f"span.mw-headline#{category}")
+        if not anchor:
+            raise SystemExit(f"Couldn't find {category} enemy family anchor")
 
-    # We can go ahead and load these into the database
+    # Insert enemy categories
     with db_conn(db_path, ensure_schema_fn=ensure_schema) as conn:
         with conn:
             cur = conn.cursor()
+
+
             for category in ENEMY_CATEGORIES:
                 cur.execute(
                     """
@@ -69,22 +92,40 @@ def main(db_path: str | pathlib.Path | None = None):
                     """,
                     (category,),
                 )
-    print(f"Loaded {len(ENEMY_CATEGORIES)} enemy categories.")
-    
-    human_groups = parse_enemy_groups(soup, "Humans")
-    robot_groups = parse_enemy_groups(soup, "Robots")
-    
-    with db_conn(db_path, ensure_schema_fn=ensure_schema) as conn:
-        with conn:
-            cur = conn.cursor()
+            print(f"Loaded {len(ENEMY_CATEGORIES)} enemy categories.")
+
+            # Insert enemy families - only for Creatures at this time
+            # Get the category id for Creatures - the only one with families
+            category_row = cur.execute(
+                "SELECT id FROM enemy_category WHERE name = ?",
+                ("Creatures",)
+            ).fetchone()
+
+            if not category_row:
+                raise RuntimeError("Missing 'Creatures' category in the DB!")
+            
+            category_id = category_row[0]
+
+            for family in ENEMY_FAMILIES:
+                cur.execute(
+                    """
+                    INSERT INTO enemy_family (category_id, name)
+                    VALUES (?, ?)
+                    ON CONFLICT(category_id, name) DO NOTHING
+                    """,
+                    (category_id, family)
+                )
+            print(f"Loaded {len(ENEMY_FAMILIES)} enemy families for Creatures category")
+
+            # Parse and insert enemy groups for Humans and Robots
+            human_groups = parse_enemy_groups(soup, "Humans") 
+            robot_groups = parse_enemy_groups(soup, "Robots")
             upsert_enemy_groups(cur, "Humans", human_groups) 
             upsert_enemy_groups(cur, "Robots", robot_groups)
-
-    # TODO: Creatures 
-    # Sometimes, in the case of Creatures, we find various subheadings:
-    # <span class="mw-headline" id="Animals">Animals</span> - these are h3's
-    # There is animals, Bugs and insects, cryptids, etc. 
-    # It's the only one structured like this
+            # Parse and insert the enemy groups for each Creature family
+            for family in ENEMY_FAMILIES:
+                groups = parse_enemy_groups(soup, family)
+                upsert_enemy_groups(cur, "Creatures", groups, family)
 
 if __name__ == "__main__":
     main()
