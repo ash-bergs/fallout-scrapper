@@ -109,88 +109,114 @@ By default, the database will be stored at:
 
 #### Commands
 
-Input for each command is case insensitive.
+Input for each command is **case-insensitive**.
+Commands aim to follow the pattern:
 
-1. Show components from an item
-
-```bash
-f76 scrap 'Acoustic Guitar'
+```
+f76 <noun> <verb> <target>
 ```
 
-Example output:
+---
+
+### 1. Show components from a junk item
+
+```bash
+f76 junk scrap 'Acoustic Guitar'
+```
+
+Lists the components that can be obtained from scrapping a junk item.
+
+**Example output:**
+
 | Component | Qty |
-|-----------|-----|
-| Wood | 4 |
-| Steel | 2 |
+| --------- | --- |
+| Wood      | 4   |
+| Steel     | 2   |
 
-2. Show items for a component
+---
 
-```bash
-f76 sources 'cloth'
-```
-
-Lists items sorted by the amount of the component they yield.
-
-Example output:
-| Item | Qty |
-|-----------|-----|
-| Cigar Box | 2 |
-| Bumblebear| 1 |
-
-3. Get map regions
+### 2. Get known spawn locations for a junk item
 
 ```bash
-f76 regions
+f76 junk find 'Yellow Plate'
 ```
 
-Lists the regions of the Fallout 76 map
+Lists known spawn points for the given junk item, including quantities and notes.
 
-Example output:
-| Region |
-|--------------|
-| Ash Heap |
-| Cranberry Bog|
+**Example output:**
 
-4. Get a list of the locations/places in a given region
+| Location        | Qty | Description                             |
+| --------------- | --- | --------------------------------------- |
+| Overlook Cabin  | 2   | Two can be found in the Overlook Cabin  |
+| The Brown House | 10  | Ten can be found inside the Brown House |
+
+---
+
+### 3. Show junk items that yield a given component
 
 ```bash
-f76 places 'Ash Heap'
+f76 scrap sources 'Cloth'
 ```
 
-Lists the places in a region
+Lists junk items that provide the specified component when scrapped,
+sorted by the quantity yielded.
 
-Example output:
-| Locations |
-|--------------|
-| AMS testing site |
-| Abandoned mine shaft 1 |
+**Example output:**
 
-5. Get the region for a given location/place
+| Item       | Qty |
+| ---------- | --- |
+| Cigar Box  | 2   |
+| Bumblebear | 1   |
+
+---
+
+### 4. List all map regions
 
 ```bash
-f76 whereis 'Wade Airport'
+f76 region list
 ```
 
-Returns the region of the map that the given location can be found
+Displays the regions of the Fallout 76 map.
 
-Example output:
-| Region |
-|--------------|
+**Example output:**
+
+| Region        |
+| ------------- |
+| Ash Heap      |
+| Cranberry Bog |
+
+---
+
+### 5. List all locations within a given region
+
+```bash
+f76 region locations 'Ash Heap'
+```
+
+Lists the known places or locations within a specific region.
+
+**Example output:**
+
+| Location               |
+| ---------------------- |
+| AMS Testing Site       |
+| Abandoned Mine Shaft 1 |
+
+---
+
+### 6. Get the region for a given location
+
+```bash
+f76 location find 'Wade Airport'
+```
+
+Returns the region of the map where the specified location can be found.
+
+**Example output:**
+
+| Region     |
+| ---------- |
 | The Forest |
-
-6. Get location spawn points for a given junk item
-
-```bash
-f76 where 'yellow plate'
-```
-
-Returns the region of the map that the given location can be found
-
-Example output:
-| Location | Qty | Desc |
-|-----------|-----|-----------|
-| Overlook Cabin | 2 | Two can be found in the Overlook cabin
-| The Brown House | 10 | Ten can be found inside the Brown House
 
 ---
 
