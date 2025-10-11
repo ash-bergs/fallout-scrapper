@@ -52,7 +52,7 @@ def resolve_db_path(db_opt: str | None = None) -> pathlib.Path:
 @junk_app.command("scrap")
 def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what components a Junk Item will scrap into (example: `f76 scrap 'Giddyup Buttercup'`)
+    Look up what components a Junk Item will scrap into (example: `f76 junk scrap 'soap'`)
     """
     q = """
     SELECT c.name, s.quantity
@@ -76,7 +76,7 @@ def scrap(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
 @junk_app.command("find")
 def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    List locations where a junk item can be found (example `f76 where soap`)
+    List locations where a junk item can be found (example `f76 junk find 'soap'`)
     """
     db_path = resolve_db_path(db)
     # lazy pop: scrape if we have no rows
@@ -112,7 +112,7 @@ def where(item: str, db: str | None = typer.Option(None, help="Path to fallout.s
 @scrap_app.command("sources")
 def sources(component: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what Junk Items are a source of a given component (example: `f76 sources 'Lead'`)
+    Look up what Junk Items are a source of a given component (example: `f76 scrap sources 'lead'`)
     """
     q = """
     SELECT i.name, s.quantity
@@ -137,7 +137,8 @@ def sources(component: str, db: str | None = typer.Option(None, help="Path to fa
 @enemy_app.command("list")
 def list_enemies(category: str, db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what enemy groups are in each category 
+    Look up what enemy groups are in each category (example: `f76 enemy list 'humans'`)
+    Hint: Categories are currently: Humans, Robots, and Creatures.
     """
     db_path = resolve_db_path(db)
 
@@ -189,7 +190,7 @@ def list_enemies(category: str, db: str | None = typer.Option(None, help="Path t
 @location_app.command("find")
 def region_for(location: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what region a location exists in. (example: `f76 whereis 'Wade Airport'`)
+    Look up what region a location exists in. (example: `f76 location find 'Wade Airport'`)
     """
     q = """
     SELECT r.name
@@ -214,7 +215,7 @@ def region_for(location: str,db: str | None = typer.Option(None, help="Path to f
 @region_app.command("locations")
 def locations_in(region: str,db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    Look up what locations are in a region of the map (example: `f76 places 'Cranberry Bog'`)
+    Look up what locations are in a region of the map (example: `f76 region locations 'Cranberry Bog'`)
     """
     q = """
     SELECT l.name
@@ -237,7 +238,7 @@ def locations_in(region: str,db: str | None = typer.Option(None, help="Path to f
 @region_app.command("list")
 def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
     """
-    List all the regions of the map (example: `f76 regions`)
+    List all the regions of the map (example: `f76 region list`)
     """
     q = """
     SELECT r.name
@@ -254,10 +255,6 @@ def locations_in(db: str | None = typer.Option(None, help="Path to fallout.sqlit
     for (region_name,) in rows:
         t.add_row(region_name)
     console.print(t)
-
-
-# TODO: 
-# @app.command("enemy")
 
 @app.command("init")
 def init(db: str | None = typer.Option(None, help="Path to fallout.sqlite")):
